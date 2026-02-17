@@ -1,32 +1,51 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const activities = [
-  { id: 1, user: "Sonny", action: "created task", target: "Daily briefing automation", time: "2m ago", avatar: "SN", color: "bg-indigo-500" },
-  { id: 2, user: "Catalina", action: "moved to", target: "In Progress", time: "5m ago", avatar: "CT", color: "bg-pink-500" },
-  { id: 3, user: "Daniela", action: "completed", target: "Social post design", time: "12m ago", avatar: "DL", color: "bg-amber-500" },
-  { id: 4, user: "Vivi", action: "commented on", target: "Q1 Strategy", time: "28m ago", avatar: "VV", color: "bg-violet-500" },
-  { id: 5, user: "Esteban", action: "uploaded", target: "Brand assets v2", time: "1h ago", avatar: "EB", color: "bg-rose-500" },
-  { id: 6, user: "Sara", action: "assigned to", target: "SEO audit", time: "2h ago", avatar: "SR", color: "bg-emerald-500" },
+  { id: 1, user: "Sonny", action: "moved task", target: "Create briefing system → In Progress", time: "2m ago", initials: "SN", color: "bg-indigo-500" },
+  { id: 2, user: "Catalina", action: "completed", target: "Q1 strategy deck", time: "15m ago", initials: "CT", color: "bg-pink-500" },
+  { id: 3, user: "Daniela", action: "started", target: "Social content calendar", time: "1h ago", initials: "DL", color: "bg-amber-500" },
+  { id: 4, user: "Sara", action: "reviewed", target: "SEO audit report", time: "2h ago", initials: "SR", color: "bg-emerald-500" },
 ];
 
-type Tab = "all" | "tasks" | "comments";
+type Tab = "all" | "tasks" | "system";
 
 export default function ActivityFeed() {
+  const [collapsed, setCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("all");
 
-  const filteredActivities = activities.filter((a) => {
-    if (activeTab === "tasks") return a.action.includes("task") || a.action.includes("moved") || a.action.includes("completed");
-    if (activeTab === "comments") return a.action.includes("commented");
-    return true;
-  });
+  if (collapsed) {
+    return (
+      <aside className="w-[60px] bg-[#f5f0ec] border-l border-[#e7e2de] flex flex-col items-center py-4">
+        <button 
+          onClick={() => setCollapsed(false)}
+          className="p-2 hover:bg-white/60 rounded-lg mb-4 transition-colors"
+        >
+          <ChevronLeft className="w-5 h-5 text-gray-500" />
+        </button>
+        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xs font-bold">
+          {activities.length}
+        </div>
+      </aside>
+    );
+  }
 
   return (
     <aside className="w-[280px] bg-[#f5f0ec] border-l border-[#e7e2de] flex flex-col overflow-hidden">
-      {/* Header */}
-      <div className="p-5 border-b border-[#e7e2de]">
-        <h2 className="text-[14px] font-bold text-[#1a1a1a]">Live Feed</h2>
+      {/* Header con Toggle */}
+      <div className="p-4 border-b border-[#e7e2de] flex items-center justify-between">
+        <div>
+          <h2 className="text-sm font-bold text-gray-900">Live Feed</h2>
+          <p className="text-xs text-gray-500">Agent activity</p>
+        </div>
+        <button 
+          onClick={() => setCollapsed(true)}
+          className="p-1.5 hover:bg-white/60 rounded-lg transition-colors"
+        >
+          <ChevronRight className="w-4 h-4 text-gray-500" />
+        </button>
       </div>
 
       {/* Tabs */}
@@ -34,15 +53,13 @@ export default function ActivityFeed() {
         {[
           { id: "all", label: "All" },
           { id: "tasks", label: "Tasks" },
-          { id: "comments", label: "Comments" },
+          { id: "system", label: "System" },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as Tab)}
-            className={`flex-1 py-3 text-[12px] font-medium transition-colors ${
-              activeTab === tab.id
-                ? "text-[#1a1a1a] border-b-2 border-indigo-500"
-                : "text-[#6b7280] hover:text-[#1a1a1a]"
+            className={`flex-1 py-2.5 text-xs font-medium transition-colors ${
+              activeTab === tab.id ? "text-indigo-600 border-b-2 border-indigo-500" : "text-gray-500 hover:text-gray-700"
             }`}
           >
             {tab.label}
@@ -51,28 +68,28 @@ export default function ActivityFeed() {
       </div>
 
       {/* Activity List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {filteredActivities.map((activity) => (
-          <div key={activity.id} className="flex gap-3 group">
-            <div className={`w-8 h-8 rounded-full ${activity.color} flex items-center justify-center text-white font-semibold text-[11px] flex-shrink-0`}>
-              {activity.avatar}
+      <div className="flex-1 overflow-y-auto p-3 space-y-2">
+        {activities.map((activity) => (
+          <div key={activity.id} className="flex gap-3 p-2 rounded-lg hover:bg-white/50 transition-colors">
+            <div className={`w-8 h-8 rounded-full ${activity.color} flex items-center justify-center text-white font-bold text-xs flex-shrink-0`}>
+              {activity.initials}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[12px] text-[#1a1a1a] leading-tight">
+              <p className="text-xs text-gray-700 leading-tight">
                 <span className="font-semibold">{activity.user}</span>{" "}
-                <span className="text-[#6b7280]">{activity.action}</span>{" "}
-                <span className="font-medium">{activity.target}</span>
-              </div>
-              <div className="text-[11px] text-[#9ca3af] mt-0.5">{activity.time}</div>
+                <span className="text-gray-500">{activity.action}</span>
+              </p>
+              <p className="text-xs text-gray-600 truncate">{activity.target}</p>
+              <p className="text-[10px] text-gray-400 mt-0.5">{activity.time}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-[#e7e2de]">
-        <button className="w-full py-2 text-[12px] text-[#6366f1] font-medium hover:underline">
-          View all activity
+      <div className="p-3 border-t border-[#e7e2de]">
+        <button className="w-full py-2 text-xs text-indigo-600 font-medium hover:underline">
+          View full history
         </button>
       </div>
     </aside>
