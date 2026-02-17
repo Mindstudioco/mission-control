@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Seed Tasks - Mission Control</title>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <style>
+    body { font-family: Inter, sans-serif; padding: 40px; background: #faf6f3; }
+    .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    h1 { font-size: 20px; margin-bottom: 20px; }
+    button { background: #6366f1; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+    button:hover { background: #4f46e5; }
+    .status { margin-top: 20px; font-size: 14px; color: #6b7280; }
+    .success { color: #22c55e; }
+    .error { color: #ef4444; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 Seed Tasks to Firebase</h1>
+    <p>Click para crear las tareas de ejemplo en Firestore:</p>
+    <button onclick="seedTasks()">Create Tasks</button>
+    <div id="status" class="status"></div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAOs7udKzlXZntlJ1rl13NPWCIsZG81ArU",
+      authDomain: "dashboardmindagents.firebaseapp.com",
+      projectId: "dashboardmindagents",
+      storageBucket: "dashboardmindagents.firebasestorage.app",
+      messagingSenderId: "943304496189",
+      appId: "1:943304496189:web:e52beb89db861375680654",
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const tasks = [
+      { title: "Setup Firebase Hosting", description: "Deploy Kanban to production", priority: "high", status: "done", assignee: "Sonny", tag: "Infrastructure" },
+      { title: "Create Agent Briefing System", description: "Daily automated reports at 7am", priority: "high", status: "inprogress", assignee: "Sonny", tag: "Operations" },
+      { title: "Connect Vercel Auto-deploy", description: "CI/CD pipeline from GitHub", priority: "high", status: "review", assignee: "Sonny", tag: "DevOps" },
+      { title: "Design Social Media Strategy", description: "Q1 content calendar for all channels", priority: "medium", status: "todo", assignee: "Catalina", tag: "Marketing" },
+      { title: "SEO Audit", description: "Technical analysis and recommendations", priority: "blocked", status: "backlog", assignee: "Sara", tag: "SEO" },
+      { title: "Brand Assets v3", description: "Update logo pack and guidelines", priority: "medium", status: "inprogress", assignee: "Esteban", tag: "Design" },
+      { title: "Community Engagement Report", description: "Weekly metrics from Telegram", priority: "low", status: "backlog", assignee: "Alejandra", tag: "Community" },
+      { title: "Agent Onboarding Flow", description: "Document SOUL.md templates", priority: "medium", status: "todo", assignee: "Vivi", tag: "Strategy" },
+    ];
+
+    async function seedTasks() {
+      const status = document.getElementById('status');
+      status.innerHTML = 'Creating tasks...';
+      
+      try {
+        for (const task of tasks) {
+          await db.collection('tasks').add({
+            ...task,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+          status.innerHTML += `<br>✅ ${task.title}`;
+        }
+        status.innerHTML += '<br><br><b class="success">All tasks created! Refresh the Kanban.</b>';
+      } catch (error) {
+        status.innerHTML = `<span class="error">Error: ${error.message}</span><br><br>Make sure Firestore Rules allow write access.`;
+      }
+    }
+  </script>
+</body>
+</html>
