@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { collection, onSnapshot, updateDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Loader2, Filter, X, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { Loader2, Filter, X, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Task {
   id: string;
@@ -13,8 +13,6 @@ interface Task {
   assignee?: string;
   status: string;
   tag?: string;
-  objective?: string;
-  outcome?: string;
 }
 
 const columns = [
@@ -37,7 +35,6 @@ export default function KanbanBoard() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
@@ -95,10 +92,10 @@ export default function KanbanBoard() {
   const activeCount = tasks.filter((t) => t.status !== "done").length;
   const queuedCount = tasks.filter((t) => t.status === "backlog" || t.status === "todo").length;
 
-
   return (
     <>
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#faf6f3]">
+        {/* Header */}
         <header className="bg-white px-7 py-5 border-b border-[#e7e2de] flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-gray-900">Mission Queue</h1>
@@ -120,6 +117,7 @@ export default function KanbanBoard() {
           </div>
         </header>
 
+        {/* Filters */}
         <div className="px-7 py-3 bg-white/50 border-b border-[#e7e2de] flex items-center gap-4">
           <Filter className="w-4 h-4 text-gray-500" />
           <span className="text-xs text-gray-600 font-medium">Filter:</span>
@@ -138,6 +136,7 @@ export default function KanbanBoard() {
           </div>
         </div>
 
+        {/* Kanban */}
         <div className="flex-1 overflow-x-auto overflow-y-hidden p-6">
           <div className="flex gap-5 h-full min-w-max">
             {columns.map((col) => {
@@ -179,48 +178,6 @@ export default function KanbanBoard() {
         </div>
       </main>
 
-
-      {/* Task Detail Modal */}
+      {/* Simple Modal */}
       {selectedTask && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setSelectedTask(null)}>
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <span className={`px-2 py-1 rounded-full text-xs font-bold ${(priorityConfig[selectedTask.priority] || priorityConfig.medium).badge}`}>
-                {(priorityConfig[selectedTask.priority] || priorityConfig.medium).label}
-              </span>
-              <button onClick={() => setSelectedTask(null)} className="p-1 hover:bg-gray-100 rounded">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">{selectedTask.title}</h2>
-            <p className="text-gray-600 mb-4">{selectedTask.description}</p>
-            
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-gray-500 uppercase">Responsable:</span>
-                <span className="text-sm text-gray-700">{selectedTask.assignee || "Unassigned"}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-gray-500 uppercase">Status:</span>
-                <span className="text-sm text-gray-700 capitalize">{selectedTask.status}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-gray-500 uppercase">Tag:</span>
-                <span className="text-sm text-gray-700">{selectedTask.tag || "-"}</span>
-              </div>
-            </div>
-            
-            <div className="flex gap-2 mt-6">
-              <button onClick={() => moveTask(selectedTask.id, getPrevStatus(selectedTask.status))} className="flex-1 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 text-sm font-medium flex items-center justify-center gap-1">
-                <ChevronLeft className="w-4 h-4" /> Anterior
-              </button>
-              <button onClick={() => moveTask(selectedTask.id, getNextStatus(selectedTask.status))} className="flex-1 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 text-sm font-medium flex items-center justify-center gap-1">
-                Siguiente <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setSelected
