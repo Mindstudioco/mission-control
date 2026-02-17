@@ -33,7 +33,7 @@ export default function KanbanBoard() {
       (snapshot) => {
         const tasksData: Task[] = [];
         snapshot.forEach((doc) => {
-          tasksData.push({ id: doc.id, ...(doc.data() as Task) });
+          tasksData.push({ ...(doc.data() as Task), id: doc.id });
         });
         setTasks(tasksData);
         setLoading(false);
