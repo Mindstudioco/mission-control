@@ -1,0 +1,34 @@
+[
+  {
+    "title": "Feature: Formulario crear tareas en Activity Feed",
+    "description": "Agregar formulario en la columna derecha (Activity Feed) para crear nuevas tareas. Campos: título, descripción, prioridad (dropdown), asignado (dropdown agentes), tag, objetivo, outcome esperado. Al crear, la tarea debe aparecer en tiempo real en el Kanban.",
+    "priority": "high",
+    "status": "todo",
+    "assignee": "Sonny",
+    "tag": "Feature"
+  },
+  {
+    "title": "Feature: Minimizar/expandir columnas laterales",
+    "description": "Agregar botón toggle en sidebar izquierdo y activity feed derecho para colapsar/expandir. Cuando están colapsados, mostrar solo icono de cada agente (más compacto). El Kanban debe ocupar el espacio liberado.",
+    "priority": "medium",
+    "status": "todo",
+    "assignee": "Sonny",
+    "tag": "UX"
+  },
+  {
+    "title": "Feature: Mejorar campos del modal de tarea",
+    "description": "Agregar campos editables en el modal: Objetivo claro, Outcome esperado (KPIs), Deadline/fecha límite, Checklist de sub-tareas. Estos campos deben guardarse en Firebase.",
+    "priority": "medium",
+    "status": "todo",
+    "assignee": "Sonny",
+    "tag": "Enhancement"
+  },
+  {
+    "title": "UX: Drag & drop entre columnas",
+    "description": "Implementar drag and drop para mover tareas entre columnas del Kanban (actualmente solo se puede mover vía botones en el modal).",
+    "priority": "low",
+    "status": "backlog",
+    "assignee": "Sonny",
+    "tag": "UX"
+  }
+]
