@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, onSnapshot, updateDoc, doc, addDoc } from "firebase/firestore";
+import { collection, onSnapshot, updateDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Loader2, Filter, PlusCircle } from "lucide-react";
+import { Loader2, Filter } from "lucide-react";
 
 interface Task {
   id: string;
@@ -13,36 +13,25 @@ interface Task {
   assignee?: string;
   status: string;
   tag?: string;
-  created_at?: string;
 }
 
 const columns = [
-  { title: "Backlog / Inbox", status: "backlog", color: "bg-gray-400" },
-  { title: "To Do", status: "todo", color: "bg-blue-500" },
-  { title: "In Progress", status: "inprogress", color: "bg-indigo-500" },
-  { title: "Review", status: "review", color: "bg-purple-500" },
-  { title: "Done", status: "done", color: "bg-green-500" },
+  { title: "Backlog", status: "backlog" },
+  { title: "To Do", status: "todo" },
+  { title: "In Progress", status: "inprogress" },
+  { title: "Review", status: "review" },
+  { title: "Done", status: "done" },
 ];
 
-const demoTasks: Task[] = [
-  { id: "1", title: "Setup Firebase Hosting", description: "Deploy Kanban to production", priority: "high", status: "done", assignee: "Sonny", tag: "Infrastructure" },
-  { id: "2", title: "Create Agent Briefing System", description: "Daily automated reports", priority: "high", status: "inprogress", assignee: "Sonny", tag: "Operations" },
-  { id: "3", title: "Connect Vercel Auto-deploy", description: "CI/CD pipeline", priority: "high", status: "review", assignee: "Sonny", tag: "DevOps" },
-  { id: "4", title: "Design Social Media Strategy", description: "Q1 content calendar", priority: "medium", status: "todo", assignee: "Catalina", tag: "Marketing" },
-  { id: "5", title: "SEO Audit", description: "Technical analysis", priority: "blocked", status: "backlog", assignee: "Sara", tag: "SEO" },
-  { id: "6", title: "Brand Assets v3", description: "Update logo pack", priority: "medium", status: "inprogress", assignee: "Esteban", tag: "Design" },
-  { id: "7", title: "Community Engagement Report", description: "Weekly metrics", priority: "low", status: "backlog", assignee: "Alejandra", tag: "Community" },
-];
-
-const priorityConfig = {
-  high: { label: "HIGH", color: "bg-orange-100 text-orange-700 border-orange-200", border: "border-l-orange-400" },
-  medium: { label: "MEDIUM", color: "bg-blue-100 text-blue-700 border-blue-200", border: "border-l-blue-400" },
-  low: { label: "LOW", color: "bg-gray-100 text-gray-700 border-gray-200", border: "border-l-gray-400" },
-  blocked: { label: "BLOCKED", color: "bg-red-100 text-red-700 border-red-200", border: "border-l-red-400" },
+const priorityConfig: Record<string, { label: string; border: string; badge: string }> = {
+  high: { label: "HIGH", border: "border-l-orange-400", badge: "bg-orange-100 text-orange-700" },
+  medium: { label: "MEDIUM", border: "border-l-blue-400", badge: "bg-blue-100 text-blue-700" },
+  low: { label: "LOW", border: "border-l-gray-400", badge: "bg-gray-100 text-gray-700" },
+  blocked: { label: "BLOCKED", border: "border-l-red-400", badge: "bg-red-100 text-red-700" },
 };
 
 export default function KanbanBoard() {
-  const [tasks, setTasks] = useState<Task[]>(demoTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
 
@@ -54,88 +43,76 @@ export default function KanbanBoard() {
         snapshot.forEach((doc) => {
           tasksData.push({ ...(doc.data() as Task), id: doc.id });
         });
-        if (tasksData.length > 0) {
-          setTasks(tasksData);
-        }
+        setTasks(tasksData);
         setLoading(false);
       },
-      (error) => {
-        console.error("Firebase error:", error);
-        setLoading(false);
-      }
+      () => setLoading(false)
     );
     return () => unsubscribe();
   }, []);
 
+  const getTasksByStatus = (status: string) => {
+    return tasks.filter((t) => {
+      if (t.status !== status) return false;
+      if (filter === "all") return true;
+      return t.priority === filter;
+    });
+  };
+
   const moveTask = async (id: string, newStatus: string) => {
     try {
-      await updateDoc(doc(db, "tasks", id), {
-        status: newStatus,
-        updated_at: new Date().toISOString(),
-      });
-    } catch (error) {
-      console.error("Error moving task:", error);
+      await updateDoc(doc(db, "tasks", id), { status: newStatus });
+    } catch (e) {
+      console.error("Move error:", e);
     }
   };
 
-  const getTasksByStatus = (status: string) => {
-    return tasks.filter((task) => task.status === status);
-  };
-
-  const activeCount = tasks.filter(t => t.status !== "done").length;
-  const inQueue = tasks.filter(t => t.status === "backlog" || t.status === "todo").length;
-
   if (loading) {
     return (
-      <main className="flex-1 flex flex-col items-center justify-center">
+      <main className="flex-1 flex items-center justify-center bg-[#faf6f3]">
         <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
-        <p className="mt-4 text-sm text-gray-500">Loading Mission Control...</p>
       </main>
     );
   }
 
+  const activeCount = tasks.filter((t) => t.status !== "done").length;
+  const queuedCount = tasks.filter((t) => t.status === "backlog" || t.status === "todo").length;
+
   return (
-    <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+    <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#faf6f3]">
       {/* Header */}
       <header className="bg-white px-7 py-5 border-b border-[#e7e2de] flex items-center justify-between">
         <div>
-          <h1 className="text-[20px] font-bold text-[#1a1a1a]">Mission Queue</h1>
-          <p className="text-[13px] text-[#6b7280] mt-0.5">
-            {tasks.length} objectives across {columns.length} stages
-          </p>
+          <h1 className="text-xl font-bold text-gray-900">Mission Queue</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{tasks.length} objectives</p>
         </div>
-
         <div className="flex items-center gap-8">
           <div className="text-center">
-            <div className="text-[24px] font-bold text-[#1a1a1a]">7</div>
-            <div className="text-[11px] text-[#9ca3af] uppercase tracking-wider mt-1">Agents</div>
+            <div className="text-2xl font-bold">7</div>
+            <div className="text-xs text-gray-400 uppercase">Agents</div>
           </div>
           <div className="text-center">
-            <div className="text-[24px] font-bold text-[#22c55e]">{activeCount}</div>
-            <div className="text-[11px] text-[#9ca3af] uppercase tracking-wider mt-1">Active</div>
+            <div className="text-2xl font-bold text-green-500">{activeCount}</div>
+            <div className="text-xs text-gray-400 uppercase">Active</div>
           </div>
           <div className="text-center">
-            <div className="text-[24px] font-bold text-[#6366f1]">{inQueue}</div>
-            <div className="text-[11px] text-[#9ca3af] uppercase tracking-wider mt-1">Queued</div>
+            <div className="text-2xl font-bold text-indigo-500">{queuedCount}</div>
+            <div className="text-xs text-gray-400 uppercase">Queued</div>
           </div>
         </div>
       </header>
 
       {/* Filters */}
       <div className="px-7 py-3 bg-white/50 border-b border-[#e7e2de] flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-[#9ca3af]" />
-          <span className="text-[12px] text-[#6b7280]">Filter:</span>
-        </div>
+        <Filter className="w-4 h-4 text-gray-400" />
+        <span className="text-xs text-gray-500">Filter:</span>
         <div className="flex gap-2">
           {["all", "high", "blocked"].map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors ${
-                filter === f
-                  ? "bg-indigo-500 text-white"
-                  : "bg-[#f5f0ec] text-[#6b7280] hover:bg-[#e7e2de]"
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                filter === f ? "bg-indigo-500 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
               {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -144,30 +121,50 @@ export default function KanbanBoard() {
         </div>
       </div>
 
-      {/* Kanban Columns */}
+      {/* Kanban */}
       <div className="flex-1 overflow-x-auto overflow-y-hidden p-6">
         <div className="flex gap-5 h-full min-w-max">
-          {columns.map((column) => {
-            const columnTasks = getTasksByStatus(column.status);
-            const filteredTasks = filter === "all"
-              ? columnTasks
-              : columnTasks.filter(t => t.priority === filter);
-
+          {columns.map((col) => {
+            const colTasks = getTasksByStatus(col.status);
             return (
-              <div key={column.status} className="w-[300px] flex flex-col min-h-0">
-                {/* Column Header */}
-                <div className="flex items-center justify-between pb-3 mb-4 border-b-2 border-[#e7e2de]">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-[14px] text-[#1a1a1a]">{column.title}</span>
-                    <span className="bg-[#f5f0ec] px-2.5 py-1 rounded-full text-[12px] font-bold text-[#6b7280]">
-                      {filteredTasks.length}
-                    </span>
-                  </div>
+              <div key={col.status} className="w-[300px] flex flex-col">
+                <div className="flex items-center justify-between pb-3 mb-4 border-b-2 border-gray-200">
+                  <span className="font-semibold text-sm">{col.title}</span>
+                  <span className="bg-gray-100 px-2.5 py-1 rounded-full text-xs font-bold text-gray-600">
+                    {colTasks.length}
+                  </span>
                 </div>
-
-                {/* Tasks */}
                 <div className="flex-1 overflow-y-auto space-y-3 pr-1">
-                  {filteredTasks.map((task) => (
-                    <div
-                      key={task.id}
-                      className={`bg-white rounded-xl p-4 border-l-[3px] shadow-[0_1px_3px_rgba(0,0,0,0.05)] cursor-pointer transition-all hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover
+                  {colTasks.map((task) => {
+                    const p = priorityConfig[task.priority] || priorityConfig.medium;
+                    return (
+                      <div
+                        key={task.id}
+                        onClick={() => moveTask(task.id, col.status === "done" ? "todo" : "done")}
+                        className={`bg-white rounded-xl p-4 border-l-[3px] ${p.border} shadow-sm cursor-pointer hover:shadow-md transition-all`}
+                      >
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${p.badge}`}>
+                          {p.label}
+                        </span>
+                        <h3 className="font-semibold text-sm mt-2">{task.title}</h3>
+                        {task.description && (
+                          <p className="text-xs text-gray-500 mt-1 line-clamp-2">{task.description}</p>
+                        )}
+                        <div className="flex items-center justify-between mt-3">
+                          <span className="text-[10px] text-gray-400">{task.assignee || "Unassigned"}</span>
+                          {task.tag && (
+                            <span className="text-[10px] px-2 py-0.5 bg-gray-100 rounded-full">{task.tag}</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </main>
+  );
+}
